@@ -14,4 +14,4 @@ source "${CUR_DIR}/logging.sh"
 source "${CUR_DIR}/util.sh"
 source "${CUR_DIR}/parallel.sh"
 
-gb::log::enable_errexit
+gb::log::enable_error_handler

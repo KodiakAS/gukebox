@@ -16,13 +16,26 @@ function gb::log::__errexit() {
 
     set +o xtrace
     local code="${1:-1}"
-    gb::log::error_exit "Error in ${BASH_SOURCE[1]}:${BASH_LINENO[0]}. " \
-        "'${BASH_COMMAND}' exited with status ${err}" "${1:-1}" 1
+    gb::log::error_exit "Error in ${BASH_SOURCE[1]}:${BASH_LINENO[0]}. '${BASH_COMMAND}' exited with status ${err}" "${code}" 1
+}
+
+# Handler for exit by command.
+function gb::log::__cmdexit() {
+    local exit_status=$?
+
+    ((exit_status == 0)) || {
+        set +o | grep -qe "-o errexit" || return
+        set +o xtrace
+
+        # LINENO in stack frame 1 is always 1 because it has been reseted by bash before trap EXIT
+        gb::log::error_exit "Exit by command '${BASH_COMMAND}' in ${BASH_SOURCE[1]}." "${exit_status}" 1
+    }
 }
 
 # Enable error handler.
 # If errexit has been setted, dump stacks and exit on error.
-function gb::log::enable_errexit() {
+function gb::log::enable_error_handler() {
+    trap 'gb::log::__cmdexit' EXIT
     trap 'gb::log::__errexit' ERR
     set -o errtrace
 }
@@ -46,6 +59,8 @@ function gb::log::error_exit() {
     }
     gb::log::stack ${stack_skip}
     echo "Exiting with status ${code}" >&2
+
+    trap - EXIT
     exit "${code}"
 }
 

@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
 function gb::err() {
-    return 1
+    local code=${1:-1}
+    return "${code}"
 }
 
 function gb::not_empty() {
-    [[ -n ${1-} ]] || gb::err
+    [[ -n ${1-} ]] || gb::err 1
 }
