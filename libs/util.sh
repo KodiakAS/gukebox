@@ -8,7 +8,7 @@
 # Args:
 #   $1 - The target
 #   $2 - Array passed by "${ARRAY[@]}"
-function gb::util::in_array() {
+function gb::in_array() {
     local target="$1"
     local element
 
@@ -28,9 +28,9 @@ function gb::util::in_array() {
 #   $2, $3, ... The elements
 #
 # Ex:
-#   gb::util::join , a b c
+#   gb::join , a b c
 #   -> a,b,c
-function gb::util::join {
+function gb::join() {
     local IFS="$1"
 
     shift
@@ -42,7 +42,7 @@ function gb::util::join {
 # Args:
 #   $1 - String
 #   ...
-function gb::util::upper() {
+function gb::upper() {
     for message; do
         echo "${message}" | tr "[:lower:]" "[:upper:]"
     done
@@ -53,7 +53,7 @@ function gb::util::upper() {
 # Args:
 #   $1 - String
 #   ...
-function gb::util::lower() {
+function gb::lower() {
     for message; do
         echo "${message}" | tr "[:upper:]" "[:lower:]"
     done
@@ -67,7 +67,7 @@ function gb::util::lower() {
 # Args:
 #   $1 - src
 #   $2 - dst
-function gb::util::copy_tree_mod() {
+function gb::copy_tree_mod() {
     gb::not_empty "${1-}"
     gb::not_empty "${2-}"
     local src=${1}
@@ -82,7 +82,7 @@ function gb::util::copy_tree_mod() {
 # Args:
 #   $1 - Target
 #   $2 - Ignore hidden (yes or no)
-function gb::util::find_all_dir() {
+function gb::find_all_dir() {
     gb::not_empty "${1-}"
     gb::not_empty "${2-}"
 
@@ -99,7 +99,7 @@ function gb::util::find_all_dir() {
 #   $1 - src
 #   $2 - dst
 #   $3 - Ignore hidden (yes or no)
-function gb::util::copy_tree_struct() {
+function gb::copy_tree_struct() {
     gb::not_empty "${1-}"
     gb::not_empty "${2-}"
     local src="${1}"
@@ -110,7 +110,7 @@ function gb::util::copy_tree_struct() {
 
     if [ -d "${src}" ]; then
         src_abspath="$(cd "$(dirname "${src}")" && pwd)"
-        new_dirs=$(cd "${src_abspath}" && gb::util::find_all_dir "$(basename "${src}")" "${ignore_hidden}")
+        new_dirs=$(cd "${src_abspath}" && gb::find_all_dir "$(basename "${src}")" "${ignore_hidden}")
         for dir in ${new_dirs[*]}; do
             mkdir -p "${dst}/${dir}"
         done
@@ -124,7 +124,7 @@ function gb::util::copy_tree_struct() {
 #
 # Args:
 #   $1 - Target directory
-function gb::util::fast_delete() {
+function gb::fast_delete() {
     gb::not_empty "${1-}"
     local blank="/tmp/blank_$$"
 
@@ -137,6 +137,6 @@ function gb::util::fast_delete() {
 # System
 
 # Get CPU core number
-function gb::util::get_core_num() {
+function gb::get_core_num() {
     grep -c processor /proc/cpuinfo
 }
