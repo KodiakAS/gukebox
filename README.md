@@ -4,5 +4,5 @@ A bash library
 
 Import gukebox into your script by
 ```
-source "${PATH_TO_GUKEBOX}/init.sh"
+source "${PATH_TO_GUKEBOX}/gukebox.sh"
 ```
