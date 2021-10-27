@@ -3,6 +3,22 @@
 # -----------------------------------------------------------------------------
 # General
 
+# Check variable is not empty
+#
+# Args:
+#   $1 - Target variable
+function gb::not_empty() {
+    [[ -n ${1-} ]]
+}
+
+# Check variable is a number
+#
+# Args:
+#   $1 - Target variable
+function gb::is_num() {
+    [[ ${1:-string} =~ ^-?[0-9\.]*$ ]]
+}
+
 # Check target in array
 #
 # Args:
@@ -57,6 +73,107 @@ function gb::lower() {
     for message; do
         echo "${message}" | tr "[:upper:]" "[:lower:]"
     done
+}
+
+# Retry command with delay increased gradually
+#
+# Based on bash-lib:
+# https://github.com/cyberark/bash-lib/tree/master/helpers
+#
+# Retry a command multiple times until it succeeds, with escalating
+# delay between attempts.
+# Delay is 2 * n + random up to 30s, then 30s + random after that.
+# For large numbers of retries the max delay is effectively the retry
+# count in minutes.
+#
+# Args:
+#   $1 - Retries
+#   $1 - Command
+function gb::retry {
+    # Maxiumum amount of fixed delay between attempts
+    # a random value will still be added.
+    local -r max_delay=30
+    local rc
+    local count
+    local retries
+    local delay
+
+    if [[ ${#} -lt 2 ]]; then
+        gb::log::raise "retry usage: retry <retries> <command>"
+    fi
+
+    retries=$1
+    shift
+
+    if ! gb::is_num "${retries}"; then
+        gb::log::raise "Invalid number of retries: ${retries} for command '${*}'".
+    fi
+
+    count=0
+    until eval "$@"; do
+        rc=$?
+        count=$((count + 1))
+        if [ "${count}" -lt "${retries}" ]; then
+            # There are still retries left, calculate delay and notify user.
+            delay=$((2 * count))
+            if [[ "${delay}" -gt "${max_delay}" ]]; then
+                delay=${max_delay}
+            fi
+
+            # Add a random amount to the delay to prevent competing processes
+            # from re-colliding.
+            wait=$((delay + (RANDOM % count)))
+            gb::log::info "'${*}' Retry $count/$retries exited $rc, retrying in $wait seconds..."
+            sleep $wait
+        else
+            gb::log::error "Retry $count/$retries exited $rc, no more retries left."
+            gb::err $rc && return $rc
+        fi
+    done
+    return 0
+}
+
+# Retry command with constant delay
+#
+# Args:
+#   $1 - Retries
+#   $2 - Interval (seconds)
+#   $3 - Command
+function gb::retry_with_constant {
+    if [[ ${#} -lt 3 ]]; then
+        gb::log::error "retry usage: retry <retries> <interval (seconds)> <command>"
+    fi
+
+    local retries=$1
+    shift
+    local interval=$1
+    shift
+
+    local count
+    local rc
+    local interval
+
+    if ! gb::is_num "${retries}"; then
+        gb::log::error "Invalid number of retries: ${retries} for command '${*}'"
+    fi
+
+    if ! gb::is_num "${interval}"; then
+        gb::log::error "Invalid interval in seconds: ${retries} for command '${*}'".
+    fi
+
+    count=0
+    until eval "$@"; do
+        rc=$?
+        count=$((count + 1))
+        if [ "${count}" -lt "${retries}" ]; then
+            gb::log::info "'${*}' Retry ${count}/${retries} exited ${rc}, retrying in ${interval} seconds..."
+            sleep "${interval}"
+        else
+            gb::log::error "Retry ${count}/${retries} exited ${rc}, no more retries left."
+            gb::err ${rc} && return ${rc}
+        fi
+    done
+    return 0
 }
 
 # -----------------------------------------------------------------------------
