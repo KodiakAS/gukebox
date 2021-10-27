@@ -122,12 +122,12 @@ function gb::retry {
 
             # Add a random amount to the delay to prevent competing processes
             # from re-colliding.
-            wait=$((delay + (RANDOM % count)))
-            gb::log::info "'${*}' Retry $count/$retries exited $rc, retrying in $wait seconds..."
-            sleep $wait
+            interval=$((delay + (RANDOM % count)))
+            gb::log::info "'${*}' Retry ${count}/${retries} exited ${rc}, retrying in ${interval} seconds..."
+            sleep ${interval}
         else
-            gb::log::error "Retry $count/$retries exited $rc, no more retries left."
-            gb::err $rc && return $rc
+            gb::log::error "Retry ${count}/${retries} exited ${rc}, no more retries left."
+            gb::err ${rc} && return ${rc}
         fi
     done
     return 0
