@@ -1,8 +1,22 @@
 #!/usr/bin/env bash
+# Provides logging and exception handling functions.
 
 # Datetime formatted for logging.
 function gb::log::__now() {
     date +"[%m%d %H:%M:%S]"
+}
+
+# Print out panic message, only using before the script aborted by error
+#
+# Args:
+#   $1 - Message
+#   ...
+function gb::log::__panic() {
+    echo "!!! $(gb::log::__now) ${1-}" >&2
+    shift
+    for message; do
+        echo "    ${message}" >&2
+    done
 }
 
 # Handler for when we exit automatically on an error.
@@ -53,7 +67,7 @@ function gb::log::error_exit() {
 
     local source_file=${BASH_SOURCE[${stack_skip}]}
     local source_line=${BASH_LINENO[$((stack_skip - 1))]}
-    gb::log::error "Error in ${source_file}:${source_line}"
+    gb::log::__panic "Error in ${source_file}:${source_line}"
     [[ -z ${1-} ]] || {
         echo "  ${1}" >&2
     }
@@ -84,14 +98,33 @@ function gb::log::stack() {
     fi
 }
 
-# Log an error and keep going, if has multiple args, messages after the first
+# Raise an error with message ( print error message and return an error code )
+# Only works when `errexit` enabled, otherwise just same as `gb::log::error`
+#
+# Args:
+#   $1 - Message
+#   ...
+function gb::log::raise() {
+    gb::log::error "$@"
+
+    # Not using `gb::err` to ignore current function call when print stack
+    return 1
+}
+
+# Log with level error, if has multiple args, messages after the first
 # one will be indented.
 #
 # Args:
 #   $1 - Message
 #   ...
+#
+# Vars required:
+#   LOGGER_NAME
 function gb::log::error() {
-    echo "!!! $(gb::log::__now) ${1-}" >&2
+    local logger_name="${LOGGER_NAME-}"
+    [[ -z ${logger_name} ]] || logger_name="[${logger_name}]"
+
+    echo "$(gb::log::__now)${logger_name}[ERROR] ${1-}" >&2
     shift
     for message; do
         echo "    ${message}" >&2
@@ -115,26 +148,6 @@ function gb::log::warning() {
     done
 }
 
-# Log with level info, if has multiple args, messages after the first one will
-# be indented.
-#
-# Args:
-#   $1 - Message
-#   ...
-#
-# Vars required:
-#   LOGGER_NAME
-function gb::log::warninglist() {
-    local logger_name="${LOGGER_NAME-}"
-    [[ -z ${logger_name} ]] || logger_name="[${logger_name}]"
-
-    echo "$(gb::log::__now)${logger_name}[WARN] ${1-}"
-    shift
-    for message; do
-        echo "    ${message}"
-    done
-}
-
 # Log with level info
 #
 # Args:
@@ -149,6 +162,26 @@ function gb::log::info() {
 
     for message; do
         echo "$(gb::log::__now)${logger_name} ${message}"
+    done
+}
+
+# Log with level info, if has multiple args, messages after the first one will
+# be indented.
+#
+# Args:
+#   $1 - Message
+#   ...
+#
+# Vars required:
+#   LOGGER_NAME
+function gb::log::warnlist() {
+    local logger_name="${LOGGER_NAME-}"
+    [[ -z ${logger_name} ]] || logger_name="[${logger_name}]"
+
+    echo "$(gb::log::__now)${logger_name}[WARN] ${1-}"
+    shift
+    for message; do
+        echo "    ${message}"
     done
 }
 
