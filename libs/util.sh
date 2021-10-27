@@ -75,6 +75,39 @@ function gb::lower() {
     done
 }
 
+# Compare version
+# Version1 = Version2    return 0
+# Version1 > Version2    return 1
+# Version1 < Version2    return 2
+#
+# Args:
+#   $1 - Version1
+#   $2 - Version2
+function gb::compare_version() {
+    if [[ "${1}" == "${2}" ]]; then
+        return 0
+    fi
+    local IFS=.
+    local i ver1=(${1}) ver2=(${2})
+    # fill empty fields in ver1 with zeros
+    for ((i = ${#ver1[@]}; i < ${#ver2[@]}; i++)); do
+        ver1[i]=0
+    done
+    for ((i = 0; i < ${#ver1[@]}; i++)); do
+        if [[ -z ${ver2[i]} ]]; then
+            # fill empty fields in ver2 with zeros
+            ver2[i]=0
+        fi
+        if ((10#${ver1[i]} > 10#${ver2[i]})); then
+            return 1
+        fi
+        if ((10#${ver1[i]} < 10#${ver2[i]})); then
+            return 2
+        fi
+    done
+    return 0
+}
+
 # Retry command with delay increased gradually
 #
 # Based on bash-lib:
@@ -252,6 +285,27 @@ function gb::fast_delete() {
 
 # -----------------------------------------------------------------------------
 # System
+
+# Get current bash version.
+function gb::get_bash_version() {
+    echo "${BASH_VERSINFO[0]}.${BASH_VERSINFO[1]}.${BASH_VERSINFO[2]}"
+}
+
+# Check current bash version is greater than target version
+#
+# Args:
+#   $1 - Target version
+function gb::check_bash_version() {
+    local target_version=${1-}
+    local bash_version
+
+    gb::not_empty "${target_version}"
+
+    bash_version="$(gb::get_bash_version)"
+    gb::compare_version "${bash_version}" "${target_version}" || {
+        [[ $? == 1 ]] || gb::log::raise "Bash version: ${bash_version} is lower than ${target_version}"
+    }
+}
 
 # Get CPU core number
 function gb::get_core_num() {
