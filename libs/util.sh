@@ -167,7 +167,8 @@ function gb::retry {
             sleep ${interval}
         else
             gb::log::error "Retry ${count}/${retries} exited ${rc}, no more retries left."
-            gb::err ${rc} && return ${rc}
+            gb::err ${rc}
+            return ${rc}
         fi
     done
     return 0
@@ -210,7 +211,8 @@ function gb::retry_with_constant {
             sleep "${interval}"
         else
             gb::log::error "Retry ${count}/${retries} exited ${rc}, no more retries left."
-            gb::err ${rc} && return ${rc}
+            gb::err ${rc}
+            return ${rc}
         fi
     done
     return 0

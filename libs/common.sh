@@ -31,7 +31,7 @@
 #
 # !!! Attention:
 #   If using `gb:err` to replace `return 1`, `gb::err` is the function
-#   actually returned, not the `func1`. So using `gb::err && return 1` to
+#   actually returned, not the `func1`. So using `gb::err; return 1` to
 #   make the function return correctly when error handler is disabled.
 function gb::err() {
     local code=${1:-1}
