@@ -6,14 +6,14 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
-CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+GUKEBOX_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
 # Low level modules
-source "${CUR_DIR}/libs/common.sh"
-source "${CUR_DIR}/libs/logging.sh"
-source "${CUR_DIR}/libs/util.sh"
+source "${GUKEBOX_HOME}/libs/common.sh"
+source "${GUKEBOX_HOME}/libs/logging.sh"
+source "${GUKEBOX_HOME}/libs/util.sh"
 
-source "${CUR_DIR}/libs/parallel.sh"
-source "${CUR_DIR}/libs/git.sh"
+source "${GUKEBOX_HOME}/libs/parallel.sh"
+source "${GUKEBOX_HOME}/libs/git.sh"
 
 gb::log::enable_error_handler
