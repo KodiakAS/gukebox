@@ -39,9 +39,9 @@ def test_error_handler_errexit(bash):
     bash.auto_return_code_error = False
     ret = bash.send("bash tests/test_error_handler_errexit.sh")
     assert "exited with status 127" in ret
-    assert "1: tests/test_err_return.sh:10 retuen_error(...)" in ret
-    assert "2: tests/test_err_return.sh:14 hello(...)" in ret
-    assert "3: tests/test_err_return.sh:17 main(...)" in ret
+    assert "1: tests/test_error_handler_errexit.sh:10 retuen_error(...)" in ret
+    assert "2: tests/test_error_handler_errexit.sh:14 hello(...)" in ret
+    assert "3: tests/test_error_handler_errexit.sh:17 main(...)" in ret
 
 
 def test_error_handler_cmdexit(bash):
