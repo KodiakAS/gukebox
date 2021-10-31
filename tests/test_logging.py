@@ -1,5 +1,6 @@
 import pytest_shell
 import re
+import os
 
 
 def test_info(bash):
@@ -37,17 +38,63 @@ def test_error_loggername(bash):
 
 def test_error_handler_errexit(bash):
     bash.auto_return_code_error = False
-    ret = bash.send("bash tests/test_error_handler_errexit.sh")
+    case_file = "tests/test_error_handler_errexit.sh"
+    case = """#!/usr/bin/env bash
+
+# shellcheck disable=SC1091
+
+CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+
+source "${CUR_DIR}/../gukebox.sh"
+
+retuen_error() {
+    gb::err 127
+}
+
+hello() {
+    retuen_error
+}
+
+hello
+"""
+    with open(case_file, "w") as f:
+        f.write(case)
+
+    ret = bash.send(f"bash {case_file}")
     assert "exited with status 127" in ret
-    assert "1: tests/test_error_handler_errexit.sh:10 retuen_error(...)" in ret
-    assert "2: tests/test_error_handler_errexit.sh:14 hello(...)" in ret
-    assert "3: tests/test_error_handler_errexit.sh:17 main(...)" in ret
+    assert f"1: {case_file}:10 retuen_error(...)" in ret
+    assert f"2: {case_file}:14 hello(...)" in ret
+    assert f"3: {case_file}:17 main(...)" in ret
+    os.remove(case_file)
 
 
 def test_error_handler_cmdexit(bash):
+    case_file = "tests/test_error_handler_cmdexit.sh"
     bash.auto_return_code_error = False
-    ret = bash.send("bash tests/test_error_handler_cmdexit.sh")
+    case = """#!/usr/bin/env bash
+
+# shellcheck disable=SC1091
+
+CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+
+source "${CUR_DIR}/../gukebox.sh"
+
+retuen_error() {
+    exit 255
+}
+
+hello() {
+    retuen_error
+}
+
+hello
+"""
+    with open(case_file, "w") as f:
+        f.write(case)
+
+    ret = bash.send(f"bash {case_file}")
     assert "Exit by command 'exit 255'" in ret
-    assert "1: tests/test_error_handler_cmdexit.sh:1 retuen_error(...)" in ret
-    assert "2: tests/test_error_handler_cmdexit.sh:14 hello(...)" in ret
-    assert "3: tests/test_error_handler_cmdexit.sh:17 main(...)" in ret
+    assert f"1: {case_file}:1 retuen_error(...)" in ret
+    assert f"2: {case_file}:14 hello(...)" in ret
+    assert f"3: {case_file}:17 main(...)" in ret
+    os.remove(case_file)
