@@ -56,7 +56,7 @@ def test_lower(bash):
     assert bash.send('gb::lower Up') == "up"
 
 
-def test_in_array(bash):
+def test_compare_version(bash):
     bash.send("source ./gukebox.sh")
     bash.send('MIN=1.2.4')
 
