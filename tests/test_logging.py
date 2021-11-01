@@ -1,4 +1,3 @@
-import pytest_shell
 import re
 import os
 
@@ -36,16 +35,76 @@ def test_error_loggername(bash):
             ret)
 
 
+def test_raise(bash):
+    bash.send("source ./gukebox.sh")
+    ret = bash.send("gb::log::raise noo || echo $?")
+    assert re.fullmatch(
+        r'\[(\d){4} ([0-1][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])\]\[ERROR\] noo\n1',
+        ret)
+
+
+def test_stack(bash):
+    case_file = "tests/test_stack.sh"
+    case = """source "gukebox.sh"
+
+func3() {
+    gb::log::stack
+}
+
+func2() {
+    func3
+}
+
+func1() {
+    func2
+}
+
+func1
+"""
+    with open(case_file, "w") as f:
+        f.write(case)
+
+    ret = bash.send(f"bash {case_file}")
+    assert ret == f"""Call stack:
+  1: {case_file}:4 func3(...)
+  2: {case_file}:8 func2(...)
+  3: {case_file}:12 func1(...)
+  4: {case_file}:15 main(...)"""
+    os.remove(case_file)
+
+
+def test_stack_skip2(bash):
+    case_file = "tests/test_stack.sh"
+    case = """source "gukebox.sh"
+
+func3() {
+    gb::log::stack 2
+}
+
+func2() {
+    func3
+}
+
+func1() {
+    func2
+}
+
+func1
+"""
+    with open(case_file, "w") as f:
+        f.write(case)
+
+    ret = bash.send(f"bash {case_file}")
+    assert ret == f"""Call stack:
+  1: {case_file}:12 func1(...)
+  2: {case_file}:15 main(...)"""
+    os.remove(case_file)
+
+
 def test_error_handler_errexit(bash):
     bash.auto_return_code_error = False
     case_file = "tests/test_error_handler_errexit.sh"
-    case = """#!/usr/bin/env bash
-
-# shellcheck disable=SC1091
-
-CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-
-source "${CUR_DIR}/../gukebox.sh"
+    case = """source "gukebox.sh"
 
 retuen_error() {
     gb::err 127
@@ -62,22 +121,16 @@ hello
 
     ret = bash.send(f"bash {case_file}")
     assert "exited with status 127" in ret
-    assert f"1: {case_file}:10 retuen_error(...)" in ret
-    assert f"2: {case_file}:14 hello(...)" in ret
-    assert f"3: {case_file}:17 main(...)" in ret
+    assert f"1: {case_file}:4 retuen_error(...)" in ret
+    assert f"2: {case_file}:8 hello(...)" in ret
+    assert f"3: {case_file}:11 main(...)" in ret
     os.remove(case_file)
 
 
 def test_error_handler_cmdexit(bash):
     case_file = "tests/test_error_handler_cmdexit.sh"
     bash.auto_return_code_error = False
-    case = """#!/usr/bin/env bash
-
-# shellcheck disable=SC1091
-
-CUR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-
-source "${CUR_DIR}/../gukebox.sh"
+    case = """source "gukebox.sh"
 
 retuen_error() {
     exit 255
@@ -95,6 +148,6 @@ hello
     ret = bash.send(f"bash {case_file}")
     assert "Exit by command 'exit 255'" in ret
     assert f"1: {case_file}:1 retuen_error(...)" in ret
-    assert f"2: {case_file}:14 hello(...)" in ret
-    assert f"3: {case_file}:17 main(...)" in ret
+    assert f"2: {case_file}:8 hello(...)" in ret
+    assert f"3: {case_file}:11 main(...)" in ret
     os.remove(case_file)

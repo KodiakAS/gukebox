@@ -1,8 +1,8 @@
-import pytest_shell
+from pathlib import Path
+
 import re
 import os
 import shutil
-from pathlib import Path
 
 
 def test_not_empty(bash):
