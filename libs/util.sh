@@ -249,7 +249,7 @@ function gb::copy_tree_mod() {
     local dst=${2}
 
     find "${dst}" -type f -print0 | xargs -0 -I{} sh -c \
-        "chmod --reference=${src}/\${1##*${dst}/} \$1" -- {} &>/dev/null || true
+        "chmod --reference=${src}/\"\${1##*${dst}/}\" \"\$1"\" -- {} &>/dev/null || true
 }
 
 # Find directories

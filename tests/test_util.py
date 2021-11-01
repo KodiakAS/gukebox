@@ -83,25 +83,25 @@ def test_copy_tree_mod(bash):
     os.mkdir(src, 0o755)
     os.mkdir(f"{src}/sub", 0o755)
     Path(f"{src}/file1").touch(0o644)
-    Path(f"{src}/file2").touch(0o644)
+    Path(f"{src}/file 2").touch(0o644)
     Path(f"{src}/file99").touch(0o644)
     Path(f"{src}/sub/file1").touch(0o644)
 
     os.mkdir(dst, 0o755)
     os.mkdir(f"{dst}/sub", 0o755)
     Path(f"{dst}/file1").touch(0o755)
-    Path(f"{dst}/file2").touch(0o755)
+    Path(f"{dst}/file 2").touch(0o755)
     Path(f"{dst}/file3").touch(0o755)
     Path(f"{dst}/sub/file1").touch(0o755)
 
     bash.send("source ./gukebox.sh")
     bash.send(f"gb::copy_tree_mod {src} {dst}")
     assert oct(Path(f"{src}/file1").stat().st_mode) == "0o100644"
-    assert oct(Path(f"{src}/file2").stat().st_mode) == "0o100644"
+    assert oct(Path(f"{src}/file 2").stat().st_mode) == "0o100644"
     assert oct(Path(f"{src}/file99").stat().st_mode) == "0o100644"
     assert oct(Path(f"{src}/sub/file1").stat().st_mode) == "0o100644"
     assert oct(Path(f"{dst}/file1").stat().st_mode) == "0o100644"
-    assert oct(Path(f"{dst}/file2").stat().st_mode) == "0o100644"
+    assert oct(Path(f"{dst}/file 2").stat().st_mode) == "0o100644"
     assert oct(Path(f"{dst}/file3").stat().st_mode) == "0o100755"
     assert oct(Path(f"{dst}/sub/file1").stat().st_mode) == "0o100644"
     shutil.rmtree(src, ignore_errors=True)
