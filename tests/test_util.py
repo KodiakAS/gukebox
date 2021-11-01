@@ -106,3 +106,19 @@ def test_copy_tree_mod(bash):
     assert oct(Path(f"{dst}/sub/file1").stat().st_mode) == "0o100644"
     shutil.rmtree(src, ignore_errors=True)
     shutil.rmtree(dst, ignore_errors=True)
+
+
+def test_iam_root(bash):
+    bash.send("source ./gukebox.sh")
+    if os.geteuid() == 0:
+        assert bash.send('gb::iam_root && echo yes || echo no') == "yes"
+    else:
+        assert bash.send('gb::iam_root && echo yes || echo no') == "no"
+
+
+def test_iam_normal_user(bash):
+    bash.send("source ./gukebox.sh")
+    if os.geteuid() == 0:
+        assert bash.send('gb::iam_normal_user && echo yes || echo no') == "no"
+    else:
+        assert bash.send('gb::iam_normal_user && echo yes || echo no') == "yes"

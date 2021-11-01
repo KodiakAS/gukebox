@@ -218,6 +218,22 @@ function gb::retry_with_constant {
     return 0
 }
 
+# Confirm current user is root
+function gb::iam_root() {
+    if [[ ${EUID} != 0 ]]; then
+        gb::err
+        return 1
+    fi
+}
+
+# Confirm current user is not root
+function gb::iam_normal_user() {
+    if [[ ${EUID} == 0 ]]; then
+        gb::err
+        return 1
+    fi
+}
+
 # -----------------------------------------------------------------------------
 # File
 
