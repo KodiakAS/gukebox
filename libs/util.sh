@@ -234,6 +234,15 @@ function gb::iam_normal_user() {
     fi
 }
 
+# shellcheck disable=SC2001
+# Get value of flags like "--key=value"
+#
+# Args:
+#   $1 - Flag
+function gb::get_flag_value() {
+    echo "$1" | sed 's/^--[0-9a-zA-Z_-]*=//'
+}
+
 # -----------------------------------------------------------------------------
 # File
 

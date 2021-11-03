@@ -122,3 +122,12 @@ def test_iam_normal_user(bash):
         assert bash.send('gb::iam_normal_user && echo yes || echo no') == "no"
     else:
         assert bash.send('gb::iam_normal_user && echo yes || echo no') == "yes"
+
+
+def test_get_flag_value(bash):
+    bash.send("source ./gukebox.sh")
+    cases = ["--te2st=1", "--test2=char", "--test3=char/-*1"]
+    res = []
+    for c in cases:
+        res.append(bash.send(f"gb::get_flag_value {c}"))
+    assert res == ['1', 'char', 'char/-*1']

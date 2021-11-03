@@ -35,6 +35,14 @@ def test_error_loggername(bash):
             ret)
 
 
+def test_infolist(bash):
+    bash.send("source ./gukebox.sh")
+    ret = bash.send("gb::log::infolist title line1 line2")
+    assert re.fullmatch(
+        r'\[(\d){4} ([0-1][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])\] title\n    line1\n    line2',
+        ret)
+
+
 def test_raise(bash):
     bash.send("source ./gukebox.sh")
     ret = bash.send("gb::log::raise noo || echo $?")
