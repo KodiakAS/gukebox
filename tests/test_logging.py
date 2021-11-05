@@ -35,14 +35,6 @@ def test_error_loggername(bash):
             ret)
 
 
-def test_infolist(bash):
-    bash.send("source ./gukebox.sh")
-    ret = bash.send("gb::log::infolist title line1 line2")
-    assert re.fullmatch(
-        r'\[(\d){4} ([0-1][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])\] title\n    line1\n    line2',
-        ret)
-
-
 def test_raise(bash):
     bash.send("source ./gukebox.sh")
     ret = bash.send("gb::log::raise noo || echo $?")
@@ -135,10 +127,11 @@ hello
     os.remove(case_file)
 
 
-def test_error_handler_cmdexit(bash):
-    case_file = "tests/test_error_handler_cmdexit.sh"
+def test_trace_exit_enabled(bash):
+    case_file = "tests/test_trace_exit_enabled.sh"
     bash.auto_return_code_error = False
     case = """source "gukebox.sh"
+gb::log::trace_exit
 
 retuen_error() {
     exit 255
@@ -156,6 +149,56 @@ hello
     ret = bash.send(f"bash {case_file}")
     assert "Exit by command 'exit 255'" in ret
     assert f"1: {case_file}:1 retuen_error(...)" in ret
-    assert f"2: {case_file}:8 hello(...)" in ret
-    assert f"3: {case_file}:11 main(...)" in ret
+    assert f"2: {case_file}:9 hello(...)" in ret
+    assert f"3: {case_file}:12 main(...)" in ret
+    os.remove(case_file)
+
+
+def test_trace_exit_enabled_and_handle_an_errexit(bash):
+    case_file = "tests/test_trace_exit_enabled_and_handle_an_errexit.sh"
+    bash.auto_return_code_error = False
+    case = """source "gukebox.sh"
+gb::log::trace_exit
+
+retuen_error() {
+    gb::err 127
+}
+
+hello() {
+    retuen_error
+}
+
+hello
+"""
+    with open(case_file, "w") as f:
+        f.write(case)
+
+    ret = bash.send(f"bash {case_file}")
+    assert "Exit by command 'exit 255'" not in ret
+    assert "exited with status 127" in ret
+    assert f"1: {case_file}:5 retuen_error(...)" in ret
+    assert f"2: {case_file}:9 hello(...)" in ret
+    assert f"3: {case_file}:12 main(...)" in ret
+    os.remove(case_file)
+
+
+def test_trace_exit_disabled(bash):
+    case_file = "tests/test_trace_exit_disabled.sh"
+    bash.auto_return_code_error = False
+    case = """source "gukebox.sh"
+
+retuen_error() {
+    exit 255
+}
+
+hello() {
+    retuen_error
+}
+
+hello
+"""
+    with open(case_file, "w") as f:
+        f.write(case)
+
+    assert not bash.send(f"bash {case_file}")
     os.remove(case_file)

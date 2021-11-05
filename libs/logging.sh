@@ -49,8 +49,13 @@ function gb::log::__cmdexit() {
 # Enable error handler.
 # If errexit has been setted, dump stacks and exit on error.
 function gb::log::enable_error_handler() {
-    trap 'gb::log::__cmdexit' EXIT
     trap 'gb::log::__errexit' ERR
+    set -o errtrace
+}
+
+# Trace abnormal exit, disabled by default.
+function gb::log::trace_exit() {
+    trap 'gb::log::__cmdexit' EXIT
     set -o errtrace
 }
 
