@@ -131,3 +131,9 @@ def test_get_flag_value(bash):
     for c in cases:
         res.append(bash.send(f"gb::get_flag_value {c}"))
     assert res == ['1', 'char', 'char/-*1']
+
+
+def test_cmd_exists(bash):
+    bash.send("source ./gukebox.sh")
+    assert bash.send('gb::cmd_exists asd2 && echo yes || echo no') == "no"
+    assert bash.send('gb::cmd_exists ls && echo yes || echo no') == "yes"

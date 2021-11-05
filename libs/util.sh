@@ -243,6 +243,14 @@ function gb::get_flag_value() {
     echo "$1" | sed 's/^--[0-9a-zA-Z_-]*=//'
 }
 
+# Comfirm target command exists
+#
+# Args:
+#   $1 - Target command
+function gb::cmd_exists() {
+    command -v "${1}" &>/dev/null
+}
+
 # -----------------------------------------------------------------------------
 # File
 
