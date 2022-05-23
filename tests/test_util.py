@@ -56,21 +56,45 @@ def test_lower(bash):
     assert bash.send('gb::lower Up') == "up"
 
 
+def test_isdigit(bash):
+    bash.send("source ./gukebox.sh")
+    ret = bash.send('gb::isdigit 123 && echo 0 || echo $?')
+    assert ret == "0"
+    ret = bash.send('gb::isdigit 12_3 && echo 0 || echo $?')
+    assert ret == "1"
+
+
 def test_compare_version(bash):
     bash.send("source ./gukebox.sh")
     bash.send('MIN=1.2.4')
 
     ret = bash.send('gb::compare_version 1.2.4 "${MIN}" && echo $? || echo $?')
     assert ret == "0"
+    ret = bash.send('gb::compare_version 1.2.4. "${MIN}" && echo $? || echo $?')
+    assert ret == "0"
+    ret = bash.send(
+        'gb::compare_version 1.2.4.rc "${MIN}" && echo $? || echo $?')
+    assert ret == "0"
 
+    ret = bash.send(
+        'gb::compare_version 1.2.4-patch1 "${MIN}" && echo $? || echo $?')
+    assert ret == "1"
     ret = bash.send('gb::compare_version 1.2.5 "${MIN}" && echo $? || echo $?')
     assert ret == "1"
     ret = bash.send('gb::compare_version 1.11.5 "${MIN}" && echo $? || echo $?')
+    assert ret == "1"
+    ret = bash.send(
+        'gb::compare_version "${MIN}" 1.0.324 && echo $? || echo $?')
+    assert ret == "1"
+    ret = bash.send(
+        'gb::compare_version 1.2.4.13 "${MIN}" && echo $? || echo $?')
     assert ret == "1"
 
     ret = bash.send('gb::compare_version 1.2 "${MIN}" && echo $? || echo $?')
     assert ret == "2"
     ret = bash.send('gb::compare_version 1.1.99 "${MIN}" && echo $? || echo $?')
+    assert ret == "2"
+    ret = bash.send('gb::compare_version 1.2.. "${MIN}" && echo $? || echo $?')
     assert ret == "2"
 
 

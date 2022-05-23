@@ -75,7 +75,16 @@ function gb::lower() {
     done
 }
 
-# Compare version
+# Check if all the characters in the string are digits
+#
+# Args:
+#   $1 - String
+function gb::isdigit() {
+    local number=${1-}
+    [[ ${number} =~ ^[0-9]+$ ]]
+}
+
+# Compare version, all non-numeric characters will be ignored
 # Version1 = Version2    return 0
 # Version1 > Version2    return 1
 # Version1 < Version2    return 2
@@ -96,15 +105,23 @@ function gb::compare_version() {
     read -ra ver1 <<<"${1}"
     read -ra ver2 <<<"${2}"
 
-    # fill empty fields in ver1 with zeros
-    for ((i = ${#ver1[@]}; i < ${#ver2[@]}; i++)); do
-        ver1[i]=0
-    done
-    for ((i = 0; i < ${#ver1[@]}; i++)); do
-        if [[ -z ${ver2[i]} ]]; then
-            # fill empty fields in ver2 with zeros
+    # make length of ver1 and ver2 equal
+    if ((${#ver1[@]} < ${#ver2[@]})); then
+        for ((i = ${#ver1[@]}; i < ${#ver2[@]}; i++)); do
+            ver1[i]=0
+        done
+    else
+        for ((i = ${#ver2[@]}; i < ${#ver1[@]}; i++)); do
             ver2[i]=0
-        fi
+        done
+    fi
+
+    for ((i = 0; i < ${#ver1[@]}; i++)); do
+        # replace blanks and non-numerics
+        ver1[i]="${ver1[i]//[!0-9]/}"
+        ver2[i]="${ver2[i]//[!0-9]/}"
+        [[ -n ${ver1[i]} ]] || ver1[i]=0
+        [[ -n ${ver2[i]} ]] || ver2[i]=0
         if ((10#${ver1[i]} > 10#${ver2[i]})); then
             return 1
         fi
