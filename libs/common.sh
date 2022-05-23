@@ -37,3 +37,11 @@ function gb::err() {
     local code=${1:-1}
     return "${code}"
 }
+
+# Mark a non-used variable as used, make shellcheck happy
+#
+# Example:
+#   gb::used VARIABLE_USED_BY_EXTERNAL
+function gb::used() {
+    true
+}
