@@ -16,36 +16,68 @@ function gb::mkpipe() {
     rm pipe-$$
 }
 
-# run the given command asynchronously and pop/push tokens
-function gb::run_with_lock() {
-    local job_file=${1}
-    local max_jobs=${2}
+# Run command parallel in given seconds
+#
+# Args:
+#   $1 - degree of parallelism
+#   $2 - running time, 0 means forever
+#   $3 - command
+function gb::run_command_parallel() {
+    local max_jobs=${1}
+    local time=${2}
     shift
     shift
+
+    local running_jobs=0
+    local end_time=$(($(date +%s) + time))
+
+    gb::mkpipe
+
+    while [ "$(date +%s)" -lt ${end_time} ]; do
+        if ((running_jobs < max_jobs)); then
+            gb::log::info "[worker-${running_jobs}] START: $*"
+            (eval "$*" && echo "${running_jobs}") >&${GB_FREE_FD} &
+            running_jobs=$((running_jobs + 1))
+        else
+            IFS= read -r ans <&${GB_FREE_FD}
+            gb::log::info "[worker-${ans}] START: $*"
+            (eval "$*" && echo "${ans}") >&${GB_FREE_FD} &
+        fi
+    done
+
+    exec {GB_FREE_FD}<&-
+}
+
+# Read commands from file, and run with parallel
+#
+# Args:
+#   $1 - degree of parallelism
+#   $2 - command file path, 1 command per line
+function gb::run_command_file_parallel() {
+    local max_jobs=${1}
+    local job_file=${2}
     local running_jobs=0
 
     gb::mkpipe
 
-    while IFS= read -r job; do
+    while IFS= read -r job || [ -n "${job}" ]; do
         if [ -z "${job}" ]; then
             continue
         fi
 
         if ((running_jobs < max_jobs)); then
+            gb::log::info "[worker-${running_jobs}] START: $job"
+            (eval "${job}" && echo "${running_jobs}") >&${GB_FREE_FD} &
             running_jobs=$((running_jobs + 1))
-            echo "start a new job: $job"
-            ("$@" && echo "done") >&${GB_FREE_FD} &
         else
             IFS= read -r ans <&${GB_FREE_FD}
-            echo "job output: $ans"
-            echo "start a new job: $job"
-            ("$@" && echo "done") >&${GB_FREE_FD} &
+            gb::log::info "[worker-${ans}] START: $job"
+            (eval "${job}" && echo "${ans}") >&${GB_FREE_FD} &
         fi
     done <"${job_file}"
 
     while IFS= read -r ans; do
         running_jobs=$((running_jobs - 1))
-        echo "job output: $ans"
         if ((running_jobs == 0)); then
             break
         fi
