@@ -209,14 +209,13 @@ function gb::retry_with_constant {
 
     local count
     local rc
-    local interval
 
     if ! gb::is_num "${retries}"; then
         gb::log::error "Invalid number of retries: ${retries} for command '${*}'"
     fi
 
     if ! gb::is_num "${interval}"; then
-        gb::log::error "Invalid interval in seconds: ${retries} for command '${*}'".
+        gb::log::error "Invalid interval in seconds: ${interval} for command '${*}'"
     fi
 
     count=0
