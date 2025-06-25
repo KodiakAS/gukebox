@@ -86,7 +86,9 @@ def test_get_core_num(bash):
 def test_retry_with_constant(bash):
     bash.send("source ./gukebox.sh")
     bash.send("i=0")
-    bash.send("fail_or_success(){ i=$((i+1)); if [[ $i -ge 2 ]]; then return 0; else return 1; fi }")
+    bash.send(
+        "fail_or_success(){ i=$((i+1)); if [[ $i -ge 2 ]]; then return 0; else return 1; fi }"
+    )
     ret = bash.send("gb::retry_with_constant 3 1 fail_or_success && echo ok")
     assert ret.splitlines()[-1] == "ok"
     bash.send("always_fail(){ return 1; }")
