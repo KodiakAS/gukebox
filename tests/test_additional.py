@@ -1,7 +1,5 @@
-import os
 import re
 import time
-from pathlib import Path
 
 
 def test_get_self_fd(bash):
@@ -13,7 +11,6 @@ def test_get_self_fd(bash):
 def test_mkpipe(bash):
     bash.send("source ./gukebox.sh")
     bash.send("gb::mkpipe")
-    fd = bash.send("echo $GB_FREE_FD")
     res = bash.send("echo hi >&${GB_FREE_FD}; read line <&${GB_FREE_FD}; echo $line")
     bash.send("exec {GB_FREE_FD}<&-")
     assert res == "hi"
