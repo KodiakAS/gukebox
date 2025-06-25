@@ -6,41 +6,45 @@ def test_info(bash):
     bash.send("source ./gukebox.sh")
     ret = bash.send("gb::log::info info")
     assert re.fullmatch(
-        r'\[(\d){4} ([0-1][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])\] info', ret)
+        r"\[(\d){4} ([0-1][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])\] info", ret
+    )
 
 
 def test_info_loggername(bash):
-    with bash(envvars={'LOGGER_NAME': 'test'}):
+    with bash(envvars={"LOGGER_NAME": "test"}):
         bash.send("source ./gukebox.sh")
         ret = bash.send("gb::log::info info")
         assert re.fullmatch(
-            r'\[(\d){4} ([0-1][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])\]\[test\] info',
-            ret)
+            r"\[(\d){4} ([0-1][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])\]\[test\] info",
+            ret,
+        )
 
 
 def test_error(bash):
     bash.send("source ./gukebox.sh")
     ret = bash.send("gb::log::error info")
     assert re.fullmatch(
-        r'\[(\d){4} ([0-1][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])\]\[ERROR\] info',
-        ret)
+        r"\[(\d){4} ([0-1][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])\]\[ERROR\] info", ret
+    )
 
 
 def test_error_loggername(bash):
-    with bash(envvars={'LOGGER_NAME': 'test'}):
+    with bash(envvars={"LOGGER_NAME": "test"}):
         bash.send("source ./gukebox.sh")
         ret = bash.send("gb::log::error info")
         assert re.fullmatch(
-            r'\[(\d){4} ([0-1][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])\]\[test\]\[ERROR\] info',
-            ret)
+            r"\[(\d){4} ([0-1][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])\]\[test\]\[ERROR\] info",
+            ret,
+        )
 
 
 def test_raise(bash):
     bash.send("source ./gukebox.sh")
     ret = bash.send("gb::log::raise noo || echo $?")
     assert re.fullmatch(
-        r'\[(\d){4} ([0-1][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])\]\[ERROR\] noo\n1',
-        ret)
+        r"\[(\d){4} ([0-1][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])\]\[ERROR\] noo\n1",
+        ret,
+    )
 
 
 def test_stack(bash):
@@ -65,11 +69,14 @@ func1
         f.write(case)
 
     ret = bash.send(f"bash {case_file}")
-    assert ret == f"""Call stack:
+    assert (
+        ret
+        == f"""Call stack:
   1: {case_file}:4 func3(...)
   2: {case_file}:8 func2(...)
   3: {case_file}:12 func1(...)
   4: {case_file}:15 main(...)"""
+    )
     os.remove(case_file)
 
 
@@ -95,9 +102,12 @@ func1
         f.write(case)
 
     ret = bash.send(f"bash {case_file}")
-    assert ret == f"""Call stack:
+    assert (
+        ret
+        == f"""Call stack:
   1: {case_file}:12 func1(...)
   2: {case_file}:15 main(...)"""
+    )
     os.remove(case_file)
 
 
